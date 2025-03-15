@@ -1,16 +1,15 @@
 # Swiggy Data Platform Architecture Design
 
-Based on your Swiggy analytics project and questions, I'll help design a comprehensive modern data platform that automates the ETL processes you've been doing manually in Snowflake. Let's break this down into key components and concepts.
-
 ![Architecture](project_snapshots/swiggy_data_platform_architecture.jpg)
 
 ## 1. Understanding Multi-Layer Data Architecture (Medallion Architecture)
 
-The medallion architecture (Bronze/Silver/Gold or Raw/Clean/Consumption) serves specific purposes:
+The medallion architecture (Bronze/Silver/Gold) serves specific purposes:
 
-### Bronze Layer (Raw/Stage)
 
 ![Architecture](project_snapshots/swiggy_data_platform_data_flow.jpg)
+
+### Bronze Layer (Raw/Stage)
 
 - **Purpose**: Data preservation in original form
 - **Characteristics**: 
@@ -54,7 +53,7 @@ The separation provides:
 SCD Type 2 (Slowly Changing Dimension) is used to track historical changes in dimension tables.
 
 ### Key Components:
-1. **Surrogate Keys**: System-generated unique identifiers (like your CUSTOMER_HK in customer_dim)
+1. **Surrogate Keys**: System-generated unique identifiers (like CUSTOMER_HK in customer_dim)
 2. **Natural/Business Keys**: Original identifiers from source systems (CUSTOMER_ID)
 3. **Effective Dates**: 
    - `EFF_START_DATE`: When the record became valid
@@ -69,8 +68,10 @@ SCD Type 2 (Slowly Changing Dimension) is used to track historical changes in di
 3. When a record is deleted:
    - Set end date and current flag = FALSE (logical delete)
 
-### Implementation in Your Project:
-Your queries use MERGE statements with logic that:
+### Implementation in Project:
+
+- Queries use MERGE statements with logic that:
+
 1. Creates hash keys for surrogate keys (CUSTOMER_HK, RESTAURANT_HK, etc.)
 2. Manages effective dates and current flags
 3. Uses stream objects to detect changes and perform the right operations
@@ -83,7 +84,7 @@ Your queries use MERGE statements with logic that:
   - Relatively small with many columns
   - Descriptive textual attributes
   - Changes less frequently (hence SCD Type 2)
-  - Examples in your project: customer_dim, restaurant_dim, delivery_agent_dim, menu_dim, date_dim
+  - Examples in project: customer_dim, restaurant_dim, delivery_agent_dim, menu_dim, date_dim
 
 ### Fact Tables
 - **Purpose**: Store performance measures and metrics
@@ -92,7 +93,7 @@ Your queries use MERGE statements with logic that:
   - Numerical values/measures (quantity, price, subtotal)
   - Foreign keys to dimension tables
   - Rapidly growing
-  - Example in your project: order_item_fact
+  - Example in project: order_item_fact
 
 ### Relationship Between Facts and Dimensions:
 - Fact tables contain foreign keys to all related dimension tables
@@ -101,7 +102,7 @@ Your queries use MERGE statements with logic that:
 
 ## 4. Automated Data Platform Design
 
-Let's design an automated system for Swiggy that replaces your manual workflow:
+Let's design an automated system for Swiggy that replaces manual workflow:
 
 ### High-Level Architecture:
 
@@ -140,7 +141,7 @@ Source Systems → Apache Airflow → Data Lake (Raw) → PySpark ETL → Snowfl
 
 ## 5. PySpark Implementation Approach
 
-To replicate your Snowflake SQL logic in PySpark:
+To replicate Snowflake SQL logic in PySpark:
 
 ### Bronze to Silver Transformation:
 ```python
@@ -200,7 +201,7 @@ def apply_scd_type2(entity_name, date_partition):
 
 ## 6. Airflow DAG Design
 
-An effective DAG structure for your Swiggy data pipeline:
+An effective DAG structure for Swiggy data pipeline:
 
 ### Main dag.py:
 ```python
@@ -255,7 +256,7 @@ with DAG('swiggy_etl_pipeline', schedule_interval='0 1 * * *') as dag:
 
 ## 7. Handling Data Availability Challenges
 
-For the scenario you mentioned (customer data arriving but order data missing):
+For the scenario mentioned (customer data arriving but order data missing):
 
 ### Approaches:
 1. **Dependency-Based Processing**:
@@ -300,7 +301,7 @@ build_fact = PythonOperator(
 
 ## 8. Using Snowflake with PySpark and Airflow
 
-You can integrate Snowflake into your PySpark/Airflow pipeline using:
+ Integrate Snowflake into PySpark/Airflow pipeline using:
 
 ### Option 1: Snowflake Connector for Spark
 ```python
@@ -331,13 +332,13 @@ def load_to_snowflake(entity, stage_name, table_name):
 ```
 
 ### Option 3: Snowflake Stored Procedures
-- Encapsulate your SCD Type 2 logic in Snowflake stored procedures
+- Encapsulate SCD Type 2 logic in Snowflake stored procedures
 - Call these procedures from Airflow
 - Let Snowflake handle complex merges for performance
 
 ## Conclusion and Next Steps
 
-This system design provides an automated, scalable approach to replace your manual ETL process for Swiggy's data warehouse. The architecture leverages:
+This system design provides an automated, scalable approach to replace manual ETL process for Swiggy's data warehouse. The architecture leverages:
 
 1. **Medallion Architecture** for clean separation of concerns
 2. **PySpark** for scalable processing
@@ -353,7 +354,7 @@ This system design provides an automated, scalable approach to replace your manu
 4. Set up monitoring and alerting for pipeline health
 5. Design incremental processing logic to handle late-arriving data
 
-This design maintains the core functionality of your current Snowflake implementation while adding automation, scalability, and resilience to handle real-world data challenges.
+This design maintains the core functionality of current Snowflake implementation while adding automation, scalability, and resilience to handle real-world data challenges.
 
 
 ## SCD Type 2
