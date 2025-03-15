@@ -54,7 +54,7 @@ This implementation follows a standard batch processing pattern where data flows
 
 For this project, files were manually loaded into Snowflake. However, in a production-grade implementation, an Apache Airflow pipeline would orchestrate the entire process:
 
-![Airflow Snowflake Pipeline](project_snapshots/airflow_pipeline_architecture.jpg)
+![Airflow Snowflake Pipeline](project_snapshots/swiggy_data_platform_data_flow.jpg)
 
 The production data pipeline would consist of these key stages:
 1. **Data Extraction**: Loading data from source systems to Snowflake Stage locations
