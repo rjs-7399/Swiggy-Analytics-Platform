@@ -1,13 +1,13 @@
 # Swiggy Data Platform Architecture Design
 
-![Architecture](project_snapshots/swiggy_data_platform_architecture.jpg)
+![Architecture](../project_snapshots/swiggy_data_platform_architecture.jpg)
 
 ## 1. Understanding Multi-Layer Data Architecture (Medallion Architecture)
 
 The medallion architecture (Bronze/Silver/Gold) serves specific purposes:
 
 
-![Architecture](project_snapshots/swiggy_data_platform_data_flow.jpg)
+![Architecture](../project_snapshots/swiggy_data_platform_data_flow.jpg)
 
 ### Bronze Layer (Raw/Stage)
 
@@ -48,7 +48,7 @@ The separation provides:
 
 ## 2. Understanding SCD Type 2 Implementation
 
-![Architecture](project_snapshots/SCD_type_2_implementation.jpg)
+![Architecture](../project_snapshots/SCD_type_2_implementation.jpg)
 
 SCD Type 2 (Slowly Changing Dimension) is used to track historical changes in dimension tables.
 
@@ -106,7 +106,7 @@ Let's design an automated system for Swiggy that replaces manual workflow:
 
 ### High-Level Architecture:
 
-![Architecture](project_snapshots/swiggy_etl_pipeline_complete_airflow_dag.jpg)
+![Architecture](../project_snapshots/swiggy_etl_pipeline_complete_airflow_dag.jpg)
 
 ```
 Source Systems → Apache Airflow → Data Lake (Raw) → PySpark ETL → Snowflake DWH → Streamlit Dashboard
@@ -335,34 +335,3 @@ def load_to_snowflake(entity, stage_name, table_name):
 - Encapsulate SCD Type 2 logic in Snowflake stored procedures
 - Call these procedures from Airflow
 - Let Snowflake handle complex merges for performance
-
-## Conclusion and Next Steps
-
-This system design provides an automated, scalable approach to replace manual ETL process for Swiggy's data warehouse. The architecture leverages:
-
-1. **Medallion Architecture** for clean separation of concerns
-2. **PySpark** for scalable processing
-3. **Airflow** for orchestration
-4. **Snowflake** for data warehousing
-5. **SCD Type 2** for historical tracking
-6. **Star Schema** for analytics optimization
-
-### Next Steps:
-1. Define entity dependencies and processing order
-2. Create metadata management system to track data freshness
-3. Implement data quality checks at each layer
-4. Set up monitoring and alerting for pipeline health
-5. Design incremental processing logic to handle late-arriving data
-
-This design maintains the core functionality of current Snowflake implementation while adding automation, scalability, and resilience to handle real-world data challenges.
-
-
-## SCD Type 2
-
-- The main characteristics of Slowly C
-
-## Medllion Arcitecture
-
-## Delta Lake
-
-## Data Warehouse Model
