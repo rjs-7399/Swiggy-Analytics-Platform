@@ -112,7 +112,7 @@
     - We can create a master airflow dag which will run each dah as a separate pipeline and inside each dag we will have a set of tasks.
     - At each task we can set the logs.
     - So we can see the job level errors in airflow dashboard.
-    - Also each dag will have driver and executor pods. We can track these errors in pods.
+    - Each dag will have driver and executor pods. We can track these errors in pods.
     - We can consider multiple scenarios:
         - Source System make the delay in providing the file for a given business date. In this case we can have a unique SLAs for each source system, If the SLA is not meet then we have to escalate that issue to the source system. And we have implemented incremental load in our system so all the other entities will execute in parallel upto clean layer. So no issues will occur at the time of consumption layer load.
         - We can set up the SLA alerting system. This system will keep track of SLA metric. Here we keep the metrics of each step. Delays from source system, Execution Time of each job. Data loading and processing Time. We can send this alert to the team in case of any issues.
