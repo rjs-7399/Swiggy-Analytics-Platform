@@ -1,5 +1,7 @@
 ## Questions asked during System Design Discussion
 
+### Batch Processing Questions
+
 1. customer table and transactional table, if transactional data has been arrived in transaction table but customer data for the same is not arrived yet and both are having SCD relationship how can we handle this scenario ?
     - We can handle this scenario with three techniques.
     - Each data platform have multiple entities and each entity will have relationships.
@@ -91,7 +93,6 @@
     - Delta lake is an open-source storage layer that extends parquet file with ACID properties.
     - It is foundation for building lakehouse architecture.
     - It supports both batch processing and streaming.
-
 8. How will you track the status of data load for each entity ?
     - We have designed all the pipelines in airflow.
     - We have a master dag which runs all the sub dags as a task.
@@ -106,7 +107,6 @@
     - Each DAG run will have their own unique correlation ID. We have integrated this correlation ID throughout the system.
     - By filtering this correlation ID we can check the logs in grafana dashboard. 
     - Here we have integrated the logging system where Open Telemetry collector sends the logs to grafana dashboard.
-
 9. How we can handle the production failures ? Like how to check the data load progress, how we can identify that data got loaded successfully or not ?
     - We will run the pipelines on airflow in pyspark on kubernetes.
     - We can create a master airflow dag which will run each dah as a separate pipeline and inside each dag we will have a set of tasks.
@@ -126,3 +126,35 @@
         - Data Skewness: Performance issue might occur due to uneven data distribution in partitions. We need to resolve the data skewness issue at the time of developing the core logic.
         - Silent data corruption: Sometimes there are scenarios where data passes the quality checks, but it is not actually correct as per the business point of view. In this case we need to perform data anomaly checks.
         - Resource management: We can add the dynamic allocation properties in our jobs to make the optimum use of resources. In case customer runs the job with huge resources. But as we enable dynamic allocation in the backend it won't increase the usage. It will allocate the optimal set of resources.
+
+### Streaming Processing Question
+
+
+1. I have to integrate the streaming processing with this platform how can I integrate it ?
+    - As per the industry standards we keep the OLTP architecture and real time streaming architecture separate.
+    - Because the data warehouses focus more on performing analysis on historical data. And based on historical data they make the business decisions.
+    - But in the real time streaming application, the focus is to get the data at a lightning speed as it arrives by performing minimum amount of aggregations.
+    - So if we try to fit the streaming applications into the current data warehouse architecture the processing speed will be too less.
+    - So better to take the data from kafka topics, process it in micro-batches in a given interval and ingest the data into redis.
+    - Here we were able to achieve the high throughput because we used redis which is in-memory store.
+2. What is driver and executor in pyspark ?
+   - When we deploy the pyspark script on kubernetes it creates the driver and executor pods.
+   - Here we run the jobs on EKS cluster. Which contains the node-groups.
+   - So these pods get scheduled on the nodes.
+   - Kubernetes works as a resource manager here. Based on available resources it provides the driver memory and executor memory to the pyspark job.
+   - Here responsibility of driver pod is to manage the lifecycle of running pyspark job. It manages the work of executor pods. The failure in executor pod should not cause the failure in driver pod. It is responsible to spawn the new executor pod if one of the initial executor pod fails.
+   - If we enable the dynamic allocation driver pod will manage to add the executors if any one fails.
+   - Executor pods actually executes tasks in parallel. Once the dataframe is arrived all the partitions get executed in parallel in each executor pods.
+3. When we create kafka topics, how do we maintain the orders in kafka topic partitions ?
+   - Here we use the data coming from sensors, web API clicks. This data will be pushed to kafka topics and then we can consume it in our pyspark structured streaming job.
+   - When creating kafka topic we define the number of partitions.
+   - Kafka can guarantee the order if we create a kafka topic with single partition only.
+   - If we create a kafka topic with multiple partitions then there is no guarantee in order.
+   - Let's say In our project we have produced 300000 messages per second in kafka topic.
+   - So if we define a kafka topic with single partition then it will guarantee the order.
+   - But if we define the kafka topic with 6 partitions then 50000 messages per partition will get produced in parallel. In this case the order will not be guaranteed.
+   - To achieve better performance we need to add partitions in kafka topic. And if we create the dataframe in our consumer job with same number of partitions then the data will get processed efficiently.
+   - Here for the better performance we must need to add multiple partitions in kafka topics.
+   - In this case we can add a new column Batch Timestamp at the time of ingesting data into redis. This column will hold the value of micro-batch start and end time.
+   - With this approach each record will hold the interval time in which it got processed.
+   - In this way the users can perform the analysis by filtering based on timestamps.
